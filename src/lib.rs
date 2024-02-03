@@ -6,6 +6,9 @@
 //! Check Oodle's [website](http://www.radgametools.com/oodle.htm) for more
 //! information.
 
+#[cfg(test)]
+mod tests;
+
 use oodle_sys;
 
 include!("constants.rs");
