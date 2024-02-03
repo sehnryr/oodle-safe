@@ -3,6 +3,7 @@ use crate as oodle_safe;
 #[test]
 #[rustfmt::skip]
 fn test_constants() {
+    assert_eq!(oodle_safe::FAILED, oodle_sys::OODLELZ_FAILED);
     assert_eq!(oodle_safe::LOCALDICTIONARYSIZE_MAX, oodle_sys::OODLELZ_LOCALDICTIONARYSIZE_MAX);
 }
 
@@ -22,9 +23,12 @@ fn test_compress() {
         None,
     );
 
+    // Make sure the compression was successful.
+    assert_ne!(compressed_size, oodle_safe::FAILED as usize);
+
     // Trim the output buffer to the actual size of the compressed data and convert
     // it to a Vec<u8>, else the test will end up double free-ing the buffer.
-    let compressed = compressed[..compressed_size as usize].to_vec();
+    let compressed = compressed[..compressed_size].to_vec();
 
     // Compare the compressed data to the expected output.
     let expected = include_bytes!("../test_data/compressed");
@@ -48,8 +52,11 @@ fn test_decompress() {
         None,
     );
 
+    // Make sure the decompression was successful.
+    assert_ne!(result, oodle_safe::FAILED as usize);
+
     // Make sure the decompressed size matches the expected size.
-    assert_eq!(decompressed_size, result as usize);
+    assert_eq!(decompressed_size, result);
 
     // Compare the decompressed data to the expected output.
     let expected = include_bytes!("../test_data/decompressed");

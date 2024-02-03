@@ -244,6 +244,11 @@ pub struct CompressOptions {
 /// * `options` - Additional options to use for compression.
 /// * `dictionary_base` - Preconditioned dictionary to use for compression.
 /// * `scratch_memory` - Scratch memory to use for compression.
+///
+/// # Returns
+///
+/// The size of the compressed data. If the return value is [FAILED], the
+/// compression failed.
 pub fn compress(
     compressor: Compressor,
     decompressed: &[u8],
@@ -252,7 +257,7 @@ pub fn compress(
     options: Option<CompressOptions>,
     dictionary_base: Option<&[u8]>,
     scratch_memory: Option<&mut [u8]>,
-) -> isize {
+) -> usize {
     let options = match options {
         Some(x) => &x as *const _,
         None => std::ptr::null() as *const _,
@@ -280,7 +285,7 @@ pub fn compress(
             std::ptr::null(), // TODO: add long_range_matcher
             scratch_memory as *mut _,
             scratch_memory_len,
-        )
+        ) as usize
     };
 }
 
@@ -373,6 +378,11 @@ impl Into<oodle_sys::OodleLZ_Decode_ThreadPhase> for DecodeThreadPhase {
 /// * `check_crc` - Whether to check the validity of the compressed data.
 /// * `verbosity` - The verbosity of the decompression.
 /// * `thread_phase` - The thread phase for threaded decompression.
+///
+/// # Returns
+///
+/// The size of the decompressed data. If the return value is [FAILED], the
+/// decompression failed by either corrupted data or an invalid dictionary.
 pub fn decompress(
     compressed: &[u8],
     decompressed: &mut [u8],
@@ -380,7 +390,7 @@ pub fn decompress(
     check_crc: Option<CheckCRC>,
     verbosity: Option<Verbosity>,
     thread_phase: Option<DecodeThreadPhase>,
-) -> isize {
+) -> usize {
     let (dictionary_base, dictionary_base_len) = match dictionary_base {
         Some(x) => (x.as_mut_ptr(), x.len() as isize),
         None => (std::ptr::null_mut(), 0),
@@ -402,6 +412,6 @@ pub fn decompress(
             std::ptr::null_mut(),
             0,
             thread_phase.unwrap_or_default().into(),
-        )
+        ) as usize
     };
 }
