@@ -233,6 +233,17 @@ pub struct CompressOptions {
     reserved: [u32; 4],
 }
 
+/// Compress some data from memory to memory synchronously.
+///
+/// # Arguments
+///
+/// * `compressor` - The compressor to use.
+/// * `decompressed` - The buffer containing the data to compress.
+/// * `compressed` - The buffer to write the compressed data to.
+/// * `level` - The compression level to use.
+/// * `options` - Additional options to use for compression.
+/// * `dictionary_base` - Preconditioned dictionary to use for compression.
+/// * `scratch_memory` - Scratch memory to use for compression.
 pub fn compress(
     compressor: Compressor,
     decompressed: &[u8],
