@@ -8,9 +8,271 @@
 
 use oodle_sys;
 
+include!("constants.rs");
+
+/// Set of compression algorithms.
+///
+/// Each compressor has its own trade-offs between compression ratio and speed.
+pub enum Compressor {
+    Invalid,
+
+    /// No compression, just a copy
+    None,
+
+    /// Fast decompression, high compression ratio
+    Kraken,
+
+    /// Slighly slower decompression but higher compression ratio than Kraken
+    Leviathan,
+
+    /// Between Kraken and Selkie in speed with decent compression ratio
+    Mermaid,
+
+    /// "Super fast" relative to Mermaid. Used for maximum decompression speed
+    Selkie,
+
+    /// Automatically selects between Kraken, Leviathan, Mermaid, and Selkie
+    Hydra,
+}
+
+impl Into<oodle_sys::OodleLZ_Compressor> for Compressor {
+    fn into(self) -> oodle_sys::OodleLZ_Compressor {
+        match self {
+            Compressor::Invalid => oodle_sys::OodleLZ_Compressor_OodleLZ_Compressor_Invalid,
+            Compressor::None => oodle_sys::OodleLZ_Compressor_OodleLZ_Compressor_None,
+            Compressor::Kraken => oodle_sys::OodleLZ_Compressor_OodleLZ_Compressor_Kraken,
+            Compressor::Leviathan => oodle_sys::OodleLZ_Compressor_OodleLZ_Compressor_Leviathan,
+            Compressor::Mermaid => oodle_sys::OodleLZ_Compressor_OodleLZ_Compressor_Mermaid,
+            Compressor::Selkie => oodle_sys::OodleLZ_Compressor_OodleLZ_Compressor_Selkie,
+            Compressor::Hydra => oodle_sys::OodleLZ_Compressor_OodleLZ_Compressor_Hydra,
+        }
+    }
+}
+
+/// Set of compression levels.
+///
+/// A compressed data stream can be decompressed with any level, but the
+/// compression level used to compress the data must be known.
+///
+/// The compression level controls the amount of work done by the compressor to
+/// find the best compressed bitstream. It does not directly impact
+/// decompression speed, it trades off encode speed for compression bitstream
+/// quality.
+pub enum CompressionLevel {
+    Invalid,
+
+    /// Don't compress, just copy the data
+    None,
+
+    /// Lowest compression ratio, super fast
+    SuperFast,
+
+    /// Fastest with still decent compression ratio
+    VeryFast,
+
+    /// Good for daily use
+    Fast,
+
+    /// Standard medium speed
+    Normal,
+
+    /// Optimal parse level 1 (fastest)
+    Optimal1,
+
+    /// Optimal parse level 2 (recommended baseline)
+    Optimal2,
+
+    /// Optimal parse level 3 (slower)
+    Optimal3,
+
+    /// Optimal parse level 4 (very slow)
+    Optimal4,
+
+    /// Optimal parse level 5 (don't care about speed, just want best ratio)
+    Optimal5,
+
+    /// Faster than SuperFast, but lower compression ratio
+    HyperFast1,
+
+    /// Faster than HyperFast1, but lower compression ratio
+    HyperFast2,
+
+    /// Faster than HyperFast2, but lower compression ratio
+    HyperFast3,
+
+    /// Faster than HyperFast3, but lower compression ratio
+    HyperFast4,
+
+    /// Alias optimal standard level
+    Optimal,
+
+    /// Alias hyperfast base level
+    HyperFast,
+
+    /// Alias for the maximum compression level
+    Max,
+
+    /// Alias for the minimum compression level
+    Min,
+}
+
+impl Into<oodle_sys::OodleLZ_CompressionLevel> for CompressionLevel {
+    #[rustfmt::skip]
+    fn into(self) -> oodle_sys::OodleLZ_CompressionLevel {
+        match self {
+            CompressionLevel::Invalid => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_Invalid,
+            CompressionLevel::None => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_None,
+            CompressionLevel::SuperFast => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_SuperFast,
+            CompressionLevel::VeryFast => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_VeryFast,
+            CompressionLevel::Fast => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_Fast,
+            CompressionLevel::Normal => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_Normal,
+            CompressionLevel::Optimal1 => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_Optimal1,
+            CompressionLevel::Optimal2 => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_Optimal2,
+            CompressionLevel::Optimal3 => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_Optimal3,
+            CompressionLevel::Optimal4 => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_Optimal4,
+            CompressionLevel::Optimal5 => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_Optimal5,
+            CompressionLevel::HyperFast1 => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_HyperFast1,
+            CompressionLevel::HyperFast2 => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_HyperFast2,
+            CompressionLevel::HyperFast3 => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_HyperFast3,
+            CompressionLevel::HyperFast4 => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_HyperFast4,
+            CompressionLevel::Optimal => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_Optimal,
+            CompressionLevel::HyperFast => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_HyperFast,
+            CompressionLevel::Max => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_Max,
+            CompressionLevel::Min => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_Min,
+        }
+    }
+}
+
+/// Decoder profile to target.
+#[repr(u32)]
+pub enum Profile {
+    Main = oodle_sys::OodleLZ_Profile_OodleLZ_Profile_Main,
+    Reduced = oodle_sys::OodleLZ_Profile_OodleLZ_Profile_Reduced,
+}
+
+/// Controls the amount of internal threading used by the compressor.
+#[repr(u32)]
+pub enum Jobify {
+    /// Use compressor default for level of internal job usage
+    Default = oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Default,
+
+    /// Do not use jobs at all
+    Disable = oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Disable,
+
+    /// Try to balance parallelism with increased memory use
+    Normal = oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Normal,
+
+    /// Maximize parallelism at the cost of increased memory use
+    Aggressive = oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Aggressive,
+    Count = oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Count,
+}
+
+#[repr(C)]
+pub struct CompressOptions {
+    /// Was previously named `verbosity`, set to 0
+    unused: u32,
+
+    /// Cannot be used to reduce a compressor's default MML, but can be higher.
+    /// On some types of data, a large MML (6 or 8) is a space-speed win.
+    min_match_len: i32,
+
+    /// Whether chunks should be independent, for seeking and parallelism
+    seek_chunk_reset: bool,
+
+    /// Decoder profile to target (set to 0)
+    profile: Profile,
+
+    /// Sets a maximum offset for matches, if lower than the maximum the format supports.
+    /// <= 0 means infinite (use whole buffer).
+    /// Often power of 2 but doesn't have to be.
+    dictionary_size: i32,
+
+    /// Number of bytes; It must gain at least this many bytes of compressed
+    /// size to accept a speed-decreasing decision
+    space_speed_tradeoff_bytes: i32,
+
+    /// Was previously named `max_huffmans_per_chunk`, set to 0
+    unused2: i32,
+
+    /// Whether the encoder should send CRCs for each compressed quantum for
+    /// integrity checking. This is necessary for using `CheckCRC::Yes` in
+    /// decompression.
+    send_quantum_crcs: bool,
+
+    /// Size of local dictionary before needing a long range matcher.
+    /// This does not set a window size for the decoder;
+    /// it's useful to limit memory use and time taken in the encoder.
+    /// This must be a power of 2 and < [LOCALDICTIONARYSIZE_MAX].
+    max_local_dictionary_size: i32,
+
+    /// Whether the encoder should should find matches beyond [max_local_dictionary_size]
+    /// when using a long range matcher.
+    make_long_range_matcher: bool,
+
+    /// Default is 0. If non-zero, this sets the size of the match finder structure
+    /// (often a hash table).
+    match_table_size_log2: i32,
+
+    /// Controls internal job usage for the compressor.
+    jobify: Jobify,
+
+    // /// User pointer passed through to RunJob and WaitJob callbacks.
+    // jobify_user_ptr: *mut std::ffi::c_void,
+    unused3: u32,
+
+    /// Far match must be at least this long.
+    far_match_min_len: i32,
+
+    /// If not 0, the log2 of the offset that must meet [far_match_min_len].
+    far_match_offset_log2: i32,
+
+    /// Reserved for future use, set to 0
+    reserved: [u32; 4],
+}
+
+pub fn compress(
+    compressor: Compressor,
+    decompressed: &[u8],
+    compressed: &mut [u8],
+    level: CompressionLevel,
+    options: Option<CompressOptions>,
+    dictionary_base: Option<&[u8]>,
+    scratch_memory: Option<&mut [u8]>,
+) -> isize {
+    let options = match options {
+        Some(x) => &x as *const _,
+        None => std::ptr::null() as *const _,
+    };
+
+    let dictionary_base = match dictionary_base {
+        Some(x) => x.as_ptr(),
+        None => std::ptr::null(),
+    };
+
+    let (scratch_memory, scratch_memory_len) = match scratch_memory {
+        Some(x) => (x.as_mut_ptr(), x.len() as isize),
+        None => (std::ptr::null_mut(), 0),
+    };
+
+    return unsafe {
+        oodle_sys::OodleLZ_Compress(
+            compressor.into(),
+            decompressed.as_ptr() as *const _,
+            decompressed.len() as isize,
+            compressed.as_mut_ptr() as *mut _,
+            level.into(),
+            options as *const _,
+            dictionary_base as *const _,
+            std::ptr::null(), // TODO: add long_range_matcher
+            scratch_memory as *mut _,
+            scratch_memory_len,
+        )
+    };
+}
+
 /// Bool enum for the LZ decoder to check the CRC of the compressed data.
 ///
-/// To use CheckCRC::Yes, the compressed data must have been compressed with
+/// To use [CheckCRC::Yes], the compressed data must have been compressed with
 /// the CRC option enabled.
 pub enum CheckCRC {
     No,
