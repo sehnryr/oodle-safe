@@ -60,9 +60,6 @@ fn test_compress() {
     )
     .unwrap_or_else(|_| panic!("compression failed"));
 
-    // Make sure the compression was successful.
-    assert_ne!(compressed_size, oodle_safe::FAILED as usize);
-
     // Trim the output buffer to the actual size of the compressed data and convert
     // it to a Vec<u8>, else the test will end up double free-ing the buffer.
     let compressed = compressed[..compressed_size].to_vec();
@@ -88,9 +85,6 @@ fn test_compress_with_default_options() {
         None,
     )
     .unwrap_or_else(|_| panic!("compression failed"));
-
-    // Make sure the compression was successful.
-    assert_ne!(compressed_size, oodle_safe::FAILED as usize);
 
     // Trim the output buffer to the actual size of the compressed data and convert
     // it to a Vec<u8>, else the test will end up double free-ing the buffer.
@@ -118,9 +112,6 @@ fn test_decompress() {
         None,
     )
     .unwrap_or_else(|_| panic!("decompression failed"));
-
-    // Make sure the decompression was successful.
-    assert_ne!(result, oodle_safe::FAILED as usize);
 
     // Make sure the decompressed size matches the expected size.
     assert_eq!(decompressed_size, result);
