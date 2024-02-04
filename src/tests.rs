@@ -29,6 +29,22 @@ fn test_default_compress_options() {
 
 #[test]
 #[rustfmt::skip]
+fn test_compress_options_validate() {
+    let mut options = oodle_safe::CompressOptions::default();
+    options.validate();
+    assert_eq!(options.min_match_len, 2);
+
+    options.seek_chunk_len = 0;
+    options.validate();
+    assert_eq!(options.seek_chunk_len, oodle_safe::BLOCK_LEN);
+
+    options.max_local_dictionary_size = oodle_safe::LOCALDICTIONARYSIZE_MAX;
+    options.validate();
+    assert_eq!(options.max_local_dictionary_size, oodle_safe::LOCALDICTIONARYSIZE_MAX >> 1);
+}
+
+#[test]
+#[rustfmt::skip]
 fn test_compress() {
     let decompressed = include_bytes!("../test_data/decompressed");
     let mut compressed = vec![0u8; decompressed.len() + 8];

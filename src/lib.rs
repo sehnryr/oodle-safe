@@ -206,7 +206,13 @@ impl From<oodle_sys::OodleLZ_Jobify> for Jobify {
 }
 
 /// Options to use for compression.
-#[derive(Debug, Clone, Copy)]
+///
+/// Typically, you would use the default options and only change the fields you
+/// need to modify.
+///
+/// To ensure that the options are valid, call [validate] after modifying the
+/// fields.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CompressOptions {
     /// Was previously named `verbosity`, set to 0
     unused: u32,
@@ -220,7 +226,7 @@ pub struct CompressOptions {
 
     /// Length of independent seek chunks if [seek_chunk_reset] is true.
     /// This must be a power of 2 and >= [BLOCK_LEN]
-    seek_chunk_len: i32,
+    seek_chunk_len: u32,
 
     /// Decoder profile to target (set to 0)
     profile: Profile,
@@ -246,7 +252,7 @@ pub struct CompressOptions {
     /// This does not set a window size for the decoder;
     /// it's useful to limit memory use and time taken in the encoder.
     /// This must be a power of 2 and < [LOCALDICTIONARYSIZE_MAX].
-    max_local_dictionary_size: i32,
+    max_local_dictionary_size: u32,
 
     /// Whether the encoder should should find matches beyond [max_local_dictionary_size]
     /// when using a long range matcher.
@@ -272,19 +278,27 @@ pub struct CompressOptions {
     reserved: [u32; 4],
 }
 
+impl CompressOptions {
+    pub fn validate(&mut self) {
+        let options: *mut oodle_sys::OodleLZ_CompressOptions = &mut (*self).into();
+        unsafe { oodle_sys::OodleLZ_CompressOptions_Validate(options) };
+        *self = CompressOptions::from(unsafe { *options });
+    }
+}
+
 impl Into<oodle_sys::OodleLZ_CompressOptions> for CompressOptions {
     fn into(self) -> oodle_sys::OodleLZ_CompressOptions {
         oodle_sys::OodleLZ_CompressOptions {
             unused_was_verbosity: self.unused,
             minMatchLen: self.min_match_len,
             seekChunkReset: if self.seek_chunk_reset { 1 } else { 0 },
-            seekChunkLen: self.seek_chunk_len,
+            seekChunkLen: self.seek_chunk_len as i32,
             profile: self.profile.into(),
             dictionarySize: self.dictionary_size,
             spaceSpeedTradeoffBytes: self.space_speed_tradeoff_bytes,
             unused_was_maxHuffmansPerChunk: self.unused2,
             sendQuantumCRCs: if self.send_quantum_crcs { 1 } else { 0 },
-            maxLocalDictionarySize: self.max_local_dictionary_size,
+            maxLocalDictionarySize: self.max_local_dictionary_size as i32,
             makeLongRangeMatcher: if self.make_long_range_matcher { 1 } else { 0 },
             matchTableSizeLog2: self.match_table_size_log2,
             jobify: self.jobify.into(),
@@ -302,13 +316,13 @@ impl From<oodle_sys::OodleLZ_CompressOptions> for CompressOptions {
             unused: options.unused_was_verbosity,
             min_match_len: options.minMatchLen,
             seek_chunk_reset: options.seekChunkReset != 0,
-            seek_chunk_len: options.seekChunkLen,
+            seek_chunk_len: options.seekChunkLen as u32,
             profile: options.profile.into(),
             dictionary_size: options.dictionarySize,
             space_speed_tradeoff_bytes: options.spaceSpeedTradeoffBytes,
             unused2: options.unused_was_maxHuffmansPerChunk,
             send_quantum_crcs: options.sendQuantumCRCs != 0,
-            max_local_dictionary_size: options.maxLocalDictionarySize,
+            max_local_dictionary_size: options.maxLocalDictionarySize as u32,
             make_long_range_matcher: options.makeLongRangeMatcher != 0,
             match_table_size_log2: options.matchTableSizeLog2,
             jobify: options.jobify.into(),
