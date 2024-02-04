@@ -13,6 +13,7 @@ fn test_default_compress_options() {
     let options = oodle_safe::CompressOptions::default();
     assert_eq!(options.min_match_len, 0);
     assert_eq!(options.seek_chunk_reset, false);
+    assert_eq!(options.seek_chunk_len, 1 << 18);
     assert_eq!(options.profile, oodle_safe::Profile::Main);
     assert_eq!(options.dictionary_size, 0);
     assert_eq!(options.space_speed_tradeoff_bytes, 256);
