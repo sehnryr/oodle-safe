@@ -143,7 +143,10 @@ impl Into<oodle_sys::OodleLZ_CompressionLevel> for CompressionLevel {
 /// Decoder profile to target.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Profile {
+    /// Main profile, full feature set
     Main,
+
+    /// Kraken only, limited feature set
     Reduced,
 }
 
