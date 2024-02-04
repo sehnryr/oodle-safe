@@ -141,30 +141,72 @@ impl Into<oodle_sys::OodleLZ_CompressionLevel> for CompressionLevel {
 }
 
 /// Decoder profile to target.
-#[repr(u32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Profile {
-    Main = oodle_sys::OodleLZ_Profile_OodleLZ_Profile_Main,
-    Reduced = oodle_sys::OodleLZ_Profile_OodleLZ_Profile_Reduced,
+    Main,
+    Reduced,
+}
+
+impl Into<oodle_sys::OodleLZ_Profile> for Profile {
+    fn into(self) -> oodle_sys::OodleLZ_Profile {
+        match self {
+            Profile::Main => oodle_sys::OodleLZ_Profile_OodleLZ_Profile_Main,
+            Profile::Reduced => oodle_sys::OodleLZ_Profile_OodleLZ_Profile_Reduced,
+        }
+    }
+}
+
+impl From<oodle_sys::OodleLZ_Profile> for Profile {
+    fn from(profile: oodle_sys::OodleLZ_Profile) -> Self {
+        match profile {
+            oodle_sys::OodleLZ_Profile_OodleLZ_Profile_Main => Profile::Main,
+            oodle_sys::OodleLZ_Profile_OodleLZ_Profile_Reduced => Profile::Reduced,
+            _ => panic!("Invalid profile"),
+        }
+    }
 }
 
 /// Controls the amount of internal threading used by the compressor.
-#[repr(u32)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Jobify {
     /// Use compressor default for level of internal job usage
-    Default = oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Default,
+    Default,
 
     /// Do not use jobs at all
-    Disable = oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Disable,
+    Disable,
 
     /// Try to balance parallelism with increased memory use
-    Normal = oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Normal,
+    Normal,
 
     /// Maximize parallelism at the cost of increased memory use
-    Aggressive = oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Aggressive,
-    Count = oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Count,
+    Aggressive,
 }
 
-#[repr(C)]
+impl Into<oodle_sys::OodleLZ_Jobify> for Jobify {
+    fn into(self) -> oodle_sys::OodleLZ_Jobify {
+        match self {
+            Jobify::Default => oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Default,
+            Jobify::Disable => oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Disable,
+            Jobify::Normal => oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Normal,
+            Jobify::Aggressive => oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Aggressive,
+        }
+    }
+}
+
+impl From<oodle_sys::OodleLZ_Jobify> for Jobify {
+    fn from(jobify: oodle_sys::OodleLZ_Jobify) -> Self {
+        match jobify {
+            oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Default => Jobify::Default,
+            oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Disable => Jobify::Disable,
+            oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Normal => Jobify::Normal,
+            oodle_sys::OodleLZ_Jobify_OodleLZ_Jobify_Aggressive => Jobify::Aggressive,
+            _ => panic!("Invalid jobify"),
+        }
+    }
+}
+
+/// Options to use for compression.
+#[derive(Debug, Clone, Copy)]
 pub struct CompressOptions {
     /// Was previously named `verbosity`, set to 0
     unused: u32,
@@ -175,6 +217,10 @@ pub struct CompressOptions {
 
     /// Whether chunks should be independent, for seeking and parallelism
     seek_chunk_reset: bool,
+
+    /// Length of independent seek chunks if [seek_chunk_reset] is true.
+    /// This must be a power of 2 and >= [BLOCK_LEN]
+    seek_chunk_len: i32,
 
     /// Decoder profile to target (set to 0)
     profile: Profile,
@@ -213,9 +259,8 @@ pub struct CompressOptions {
     /// Controls internal job usage for the compressor.
     jobify: Jobify,
 
-    // /// User pointer passed through to RunJob and WaitJob callbacks.
-    // jobify_user_ptr: *mut std::ffi::c_void,
-    unused3: u32,
+    /// User pointer passed through to RunJob and WaitJob callbacks.
+    jobify_user_ptr: *mut std::ffi::c_void,
 
     /// Far match must be at least this long.
     far_match_min_len: i32,
@@ -225,6 +270,67 @@ pub struct CompressOptions {
 
     /// Reserved for future use, set to 0
     reserved: [u32; 4],
+}
+
+impl Into<oodle_sys::OodleLZ_CompressOptions> for CompressOptions {
+    fn into(self) -> oodle_sys::OodleLZ_CompressOptions {
+        oodle_sys::OodleLZ_CompressOptions {
+            unused_was_verbosity: self.unused,
+            minMatchLen: self.min_match_len,
+            seekChunkReset: if self.seek_chunk_reset { 1 } else { 0 },
+            seekChunkLen: self.seek_chunk_len,
+            profile: self.profile.into(),
+            dictionarySize: self.dictionary_size,
+            spaceSpeedTradeoffBytes: self.space_speed_tradeoff_bytes,
+            unused_was_maxHuffmansPerChunk: self.unused2,
+            sendQuantumCRCs: if self.send_quantum_crcs { 1 } else { 0 },
+            maxLocalDictionarySize: self.max_local_dictionary_size,
+            makeLongRangeMatcher: if self.make_long_range_matcher { 1 } else { 0 },
+            matchTableSizeLog2: self.match_table_size_log2,
+            jobify: self.jobify.into(),
+            jobifyUserPtr: self.jobify_user_ptr,
+            farMatchMinLen: self.far_match_min_len,
+            farMatchOffsetLog2: self.far_match_offset_log2,
+            reserved: self.reserved,
+        }
+    }
+}
+
+impl From<oodle_sys::OodleLZ_CompressOptions> for CompressOptions {
+    fn from(options: oodle_sys::OodleLZ_CompressOptions) -> Self {
+        Self {
+            unused: options.unused_was_verbosity,
+            min_match_len: options.minMatchLen,
+            seek_chunk_reset: options.seekChunkReset != 0,
+            seek_chunk_len: options.seekChunkLen,
+            profile: options.profile.into(),
+            dictionary_size: options.dictionarySize,
+            space_speed_tradeoff_bytes: options.spaceSpeedTradeoffBytes,
+            unused2: options.unused_was_maxHuffmansPerChunk,
+            send_quantum_crcs: options.sendQuantumCRCs != 0,
+            max_local_dictionary_size: options.maxLocalDictionarySize,
+            make_long_range_matcher: options.makeLongRangeMatcher != 0,
+            match_table_size_log2: options.matchTableSizeLog2,
+            jobify: options.jobify.into(),
+            jobify_user_ptr: options.jobifyUserPtr,
+            far_match_min_len: options.farMatchMinLen,
+            far_match_offset_log2: options.farMatchOffsetLog2,
+            reserved: options.reserved,
+        }
+    }
+}
+
+impl Default for CompressOptions {
+    fn default() -> Self {
+        let options = unsafe {
+            *oodle_sys::OodleLZ_CompressOptions_GetDefault(
+                Compressor::None.into(),
+                CompressionLevel::None.into(),
+            )
+        };
+
+        options.into()
+    }
 }
 
 /// Compress some data from memory to memory synchronously.
@@ -253,7 +359,7 @@ pub fn compress(
     scratch_memory: Option<&mut [u8]>,
 ) -> usize {
     let options = match options {
-        Some(x) => &x as *const _,
+        Some(x) => &x.into(),
         None => std::ptr::null() as *const _,
     };
 
@@ -274,7 +380,7 @@ pub fn compress(
             decompressed.len() as isize,
             compressed.as_mut_ptr() as *mut _,
             level.into(),
-            options as *const _,
+            options,
             dictionary_base as *const _,
             std::ptr::null(), // TODO: add long_range_matcher
             scratch_memory as *mut _,
