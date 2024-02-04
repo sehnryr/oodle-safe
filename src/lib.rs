@@ -368,6 +368,8 @@ impl Default for CompressOptions {
 /// * `dictionary_base` - Preconditioned dictionary to use for compression.
 /// * `scratch_memory` - Scratch memory to use for compression.
 ///
+/// When setting optionnal parameters to `None`, the default value will be used.
+///
 /// # Returns
 ///
 /// The size of the compressed data.
@@ -510,6 +512,8 @@ impl Into<oodle_sys::OodleLZ_Decode_ThreadPhase> for DecodeThreadPhase {
 /// * `check_crc` - Whether to check the validity of the compressed data.
 /// * `verbosity` - The verbosity of the decompression.
 /// * `thread_phase` - The thread phase for threaded decompression.
+///
+/// When setting optionnal parameters to `None`, the default value will be used.
 ///
 /// # Returns
 ///
