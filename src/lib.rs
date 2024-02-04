@@ -373,6 +373,32 @@ impl Default for CompressOptions {
 /// # Returns
 ///
 /// The size of the compressed data.
+///
+/// # Example
+///
+/// ```rust
+/// // Load decompressed data from a file (or any other source).
+/// let decompressed = include_bytes!("../test_data/decompressed");
+///
+/// // Allocate compressed buffer with some extra space in case the compression
+/// // adds some overhead like the OodleLZ block header.
+/// let mut compressed = vec![0u8; decompressed.len() + 8];
+///
+/// // Compress the data.
+/// let compressed_size = oodle_safe::compress(
+///     oodle_safe::Compressor::Kraken,
+///     decompressed,
+///     &mut compressed,
+///     oodle_safe::CompressionLevel::Normal, // same as default
+///     Some(oodle_safe::CompressOptions::default()), // same as default
+///     None,
+///     None,
+/// )
+/// .unwrap_or_else(|_| panic!("compression failed"));
+///
+/// // Trim the output buffer to the actual size of the compressed data.
+/// let compressed = &compressed[..compressed_size];
+/// ```
 pub fn compress(
     compressor: Compressor,
     decompressed: &[u8],
@@ -518,6 +544,26 @@ impl Into<oodle_sys::OodleLZ_Decode_ThreadPhase> for DecodeThreadPhase {
 /// # Returns
 ///
 /// The size of the decompressed data.
+///
+/// # Example
+/// ```rust
+/// // Load compressed data from a file (or any other source).
+/// let compressed = include_bytes!("../test_data/compressed");
+///
+/// # let decompressed_size = u32::from_le_bytes(compressed[..4].try_into().unwrap()) as usize;
+/// // Allocate decompressed buffer with the size of the decompressed data.
+/// let mut decompressed = vec![0u8; decompressed_size];
+///
+/// let result = oodle_safe::decompress(
+///     &compressed[4..],
+///     &mut decompressed,
+///     None,
+///     Some(oodle_safe::CheckCRC::No), // same as default
+///     Some(oodle_safe::Verbosity::None), // same as default
+///     Some(oodle_safe::DecodeThreadPhase::Unthreaded), // same as default
+/// )
+/// .unwrap_or_else(|_| panic!("decompression failed"));
+/// ```
 pub fn decompress(
     compressed: &[u8],
     decompressed: &mut [u8],
