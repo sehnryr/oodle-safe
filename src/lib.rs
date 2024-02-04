@@ -210,8 +210,8 @@ impl From<oodle_sys::OodleLZ_Jobify> for Jobify {
 /// Typically, you would use the default options and only change the fields you
 /// need to modify.
 ///
-/// To ensure that the options are valid, call [validate] after modifying the
-/// fields.
+/// To ensure that the options are valid, call [CompressOptions::validate]
+/// after modifying the fields.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CompressOptions {
     /// Was previously named `verbosity`, set to 0
