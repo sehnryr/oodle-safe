@@ -17,8 +17,6 @@ include!("constants.rs");
 ///
 /// Each compressor has its own trade-offs between compression ratio and speed.
 pub enum Compressor {
-    Invalid,
-
     /// No compression, just a copy
     None,
 
@@ -41,7 +39,6 @@ pub enum Compressor {
 impl Into<oodle_sys::OodleLZ_Compressor> for Compressor {
     fn into(self) -> oodle_sys::OodleLZ_Compressor {
         match self {
-            Compressor::Invalid => oodle_sys::OodleLZ_Compressor_OodleLZ_Compressor_Invalid,
             Compressor::None => oodle_sys::OodleLZ_Compressor_OodleLZ_Compressor_None,
             Compressor::Kraken => oodle_sys::OodleLZ_Compressor_OodleLZ_Compressor_Kraken,
             Compressor::Leviathan => oodle_sys::OodleLZ_Compressor_OodleLZ_Compressor_Leviathan,
@@ -62,8 +59,6 @@ impl Into<oodle_sys::OodleLZ_Compressor> for Compressor {
 /// decompression speed, it trades off encode speed for compression bitstream
 /// quality.
 pub enum CompressionLevel {
-    Invalid,
-
     /// Don't compress, just copy the data
     None,
 
@@ -123,7 +118,6 @@ impl Into<oodle_sys::OodleLZ_CompressionLevel> for CompressionLevel {
     #[rustfmt::skip]
     fn into(self) -> oodle_sys::OodleLZ_CompressionLevel {
         match self {
-            CompressionLevel::Invalid => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_Invalid,
             CompressionLevel::None => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_None,
             CompressionLevel::SuperFast => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_SuperFast,
             CompressionLevel::VeryFast => oodle_sys::OodleLZ_CompressionLevel_OodleLZ_CompressionLevel_VeryFast,
