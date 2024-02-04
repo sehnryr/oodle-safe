@@ -361,8 +361,7 @@ impl Default for CompressOptions {
 ///
 /// # Returns
 ///
-/// The size of the compressed data. If the return value is [FAILED], the
-/// compression failed.
+/// The size of the compressed data.
 pub fn compress(
     compressor: Compressor,
     decompressed: &[u8],
@@ -371,7 +370,7 @@ pub fn compress(
     options: Option<CompressOptions>,
     dictionary_base: Option<&[u8]>,
     scratch_memory: Option<&mut [u8]>,
-) -> usize {
+) -> Result<usize, u32> {
     let options = match options {
         Some(x) => &x.into(),
         None => std::ptr::null() as *const _,
@@ -387,7 +386,7 @@ pub fn compress(
         None => (std::ptr::null_mut(), 0),
     };
 
-    return unsafe {
+    let result = unsafe {
         oodle_sys::OodleLZ_Compress(
             compressor.into(),
             decompressed.as_ptr() as *const _,
@@ -401,6 +400,12 @@ pub fn compress(
             scratch_memory_len,
         ) as usize
     };
+
+    if result == FAILED as usize {
+        Err(FAILED)
+    } else {
+        Ok(result)
+    }
 }
 
 /// Bool enum for the LZ decoder to check the CRC of the compressed data.
@@ -495,8 +500,7 @@ impl Into<oodle_sys::OodleLZ_Decode_ThreadPhase> for DecodeThreadPhase {
 ///
 /// # Returns
 ///
-/// The size of the decompressed data. If the return value is [FAILED], the
-/// decompression failed by either corrupted data or an invalid dictionary.
+/// The size of the decompressed data.
 pub fn decompress(
     compressed: &[u8],
     decompressed: &mut [u8],
@@ -504,13 +508,13 @@ pub fn decompress(
     check_crc: Option<CheckCRC>,
     verbosity: Option<Verbosity>,
     thread_phase: Option<DecodeThreadPhase>,
-) -> usize {
+) -> Result<usize, u32> {
     let (dictionary_base, dictionary_base_len) = match dictionary_base {
         Some(x) => (x.as_mut_ptr(), x.len() as isize),
         None => (std::ptr::null_mut(), 0),
     };
 
-    return unsafe {
+    let result = unsafe {
         oodle_sys::OodleLZ_Decompress(
             compressed.as_ptr() as *const _,
             compressed.len() as isize,
@@ -528,4 +532,10 @@ pub fn decompress(
             thread_phase.unwrap_or_default().into(),
         ) as usize
     };
+
+    if result == FAILED as usize {
+        Err(FAILED)
+    } else {
+        Ok(result)
+    }
 }

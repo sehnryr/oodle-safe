@@ -57,7 +57,8 @@ fn test_compress() {
         None,
         None,
         None,
-    );
+    )
+    .unwrap_or_else(|_| panic!("compression failed"));
 
     // Make sure the compression was successful.
     assert_ne!(compressed_size, oodle_safe::FAILED as usize);
@@ -85,7 +86,8 @@ fn test_compress_with_default_options() {
         Some(oodle_safe::CompressOptions::default()),
         None,
         None,
-    );
+    )
+    .unwrap_or_else(|_| panic!("compression failed"));
 
     // Make sure the compression was successful.
     assert_ne!(compressed_size, oodle_safe::FAILED as usize);
@@ -114,7 +116,8 @@ fn test_decompress() {
         None,
         None,
         None,
-    );
+    )
+    .unwrap_or_else(|_| panic!("decompression failed"));
 
     // Make sure the decompression was successful.
     assert_ne!(result, oodle_safe::FAILED as usize);
