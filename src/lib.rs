@@ -140,6 +140,12 @@ impl Into<oodle_sys::OodleLZ_CompressionLevel> for CompressionLevel {
     }
 }
 
+impl Default for CompressionLevel {
+    fn default() -> Self {
+        CompressionLevel::Normal
+    }
+}
+
 /// Decoder profile to target.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Profile {
