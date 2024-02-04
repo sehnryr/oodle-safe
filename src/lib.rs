@@ -407,6 +407,10 @@ pub fn compress(
     if result == FAILED as usize {
         Err(FAILED)
     } else {
+        // This is necessary to avoid double free-ing the buffer when slicing
+        // the compressed buffer after the compression.
+        let compressed_data = compressed[..result].to_vec();
+        compressed[..result].copy_from_slice(&compressed_data);
         Ok(result)
     }
 }

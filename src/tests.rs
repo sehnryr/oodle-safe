@@ -62,7 +62,7 @@ fn test_compress() {
 
     // Trim the output buffer to the actual size of the compressed data and convert
     // it to a Vec<u8>, else the test will end up double free-ing the buffer.
-    let compressed = compressed[..compressed_size].to_vec();
+    let compressed = &compressed[..compressed_size];
 
     // Compare the compressed data to the expected output.
     let expected = include_bytes!("../test_data/compressed");
@@ -88,7 +88,7 @@ fn test_compress_with_default_options() {
 
     // Trim the output buffer to the actual size of the compressed data and convert
     // it to a Vec<u8>, else the test will end up double free-ing the buffer.
-    let compressed = compressed[..compressed_size].to_vec();
+    let compressed = &compressed[..compressed_size];
 
     // Compare the compressed data to the expected output.
     let expected = include_bytes!("../test_data/compressed");
